@@ -1,34 +1,33 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, UseGuards, Req, HttpStatus, Query, ParseBoolPipe, ParseUUIDPipe } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('tasks')
+@UseGuards(AuthGuard('jwt'))
 export class TasksController {
-  constructor(private readonly tasksService: TasksService) {}
+  constructor(private readonly tasksService: TasksService) { }
 
   @Post()
-  create(@Body() createTaskDto: CreateTaskDto) {
-    return this.tasksService.create(createTaskDto);
+  @HttpCode(HttpStatus.CREATED)
+  async create(@Req() req: any, @Body() createDto: CreateTaskDto) {
+    const user = req.user;
+    return this.tasksService.create(createDto, user.id);
   }
 
   @Get()
-  findAll() {
-    return this.tasksService.findAll();
+  async findAll(
+    @Req() req: any,
+    @Query('completed', new ParseBoolPipe({ optional: true })) completed?: boolean,
+  ) {
+    const user = req.user; // provisto por JwtStrategy -> { id, username }
+    return this.tasksService.findAllForUser(user.id, completed);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.tasksService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto) {
-    return this.tasksService.update(+id, updateTaskDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.tasksService.remove(+id);
+  async findOne(@Req() req: any, @Param('id', new ParseUUIDPipe()) id: string) {
+    const user = req.user;
+    return this.tasksService.findOneForUser(id, user.id);
   }
 }
