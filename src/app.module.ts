@@ -4,10 +4,14 @@ import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import ormconfig from '../ormconfig';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
+import { UsersModule } from './users/users.module';
+import { TasksModule } from './tasks/tasks.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot(ormconfig)
+    TypeOrmModule.forRoot(ormconfig),
+    UsersModule,
+    TasksModule
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -17,7 +17,7 @@ async function bootstrap() {
   }));
 
   const port = process.env.PORT || 3000;
-
+  app.setGlobalPrefix('api/v1');
   await app.listen(port);
 
   Logger.log(`Application listening on port ${port}`);
